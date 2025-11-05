@@ -1,5 +1,5 @@
 # workout-analyzer
-This takes CSV Exports of Workouts from the Strong App and Does Data Visualizations
+This takes CSV Exports of Workouts from the Strong App and does Data Visualizations
 
 # Required Dependencies: 
 
@@ -9,9 +9,9 @@ pip3 install matplotlib
 
 # Usage
 
-python workout_analyzer_enhanced.py analyze their_workouts.csv
+python3 workout_analyzer_enhanced.py analyze their_workouts.csv
 
-python workout_analyzer_enhanced.py visualize their_workouts.csv
+python3 workout_analyzer_enhanced.py visualize their_workouts.csv
 
 # How to Export Data From Strong
 
