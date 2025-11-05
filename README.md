@@ -10,4 +10,5 @@ pip3 install matplotlib
 # Usage
 
 python workout_analyzer_enhanced.py analyze their_workouts.csv
+
 python workout_analyzer_enhanced.py visualize their_workouts.csv
