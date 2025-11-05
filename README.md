@@ -12,3 +12,7 @@ pip3 install matplotlib
 python workout_analyzer_enhanced.py analyze their_workouts.csv
 
 python workout_analyzer_enhanced.py visualize their_workouts.csv
+
+# How to Export Data From Strong
+
+![IMG_3B990623AA66-1](https://github.com/user-attachments/assets/b8d79c0d-e3dd-4314-8bf2-f4c1351e8f3a)
