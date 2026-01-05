@@ -1,7 +1,7 @@
 
 # 🏋️ Workout Analyzer
 
-**Workout Analyzer** is a lightweight Python tool that analyzes and visualizes workout data exported from the **Strong App**.
+**Workout Analyzer** is a lightweight Python tool & webapp that analyzes and visualizes workout data exported from the **Strong App**.
 It transforms raw CSV exports into clear, informative visual insights about your training history.
 
 ---
