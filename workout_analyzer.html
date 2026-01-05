@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Workout Progress Analyzer</title>
+
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/danfojs@1.1.2/lib/bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .upload-section {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .file-input-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: bold;
+            display: inline-block;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .file-input-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .file-name {
+            margin-top: 15px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .loading {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .chart-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .chart-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
+        }
+
+        .chart-container.tall {
+            height: 500px;
+        }
+
+        .exercise-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .exercise-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💪 Advanced Workout Progress Analyzer</h1>
+            <p class="subtitle">Comprehensive workout analytics with visualizations and insights</p>
+        </header>
+
+        <div class="upload-section">
+            <h2 style="margin-bottom: 20px;">Upload Your Workout Data</h2>
+            <p style="color: #666; margin-bottom: 20px;">
+                Upload a CSV file with columns: Date, Exercise Name, Weight, Reps
+            </p>
+            <div class="file-input-wrapper">
+                <div class="file-input-button">
+                    📁 Choose CSV File
+                </div>
+                <input type="file" id="csvFile" accept=".csv" />
+            </div>
+            <div class="file-name" id="fileName"></div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px;">Processing your workout data...</p>
+            </div>
+            <div class="error" id="error"></div>
+        </div>
+
+        <div class="results" id="results">
+            <!-- Summary Statistics -->
+            <div class="chart-section">
+                <h2 class="chart-title">📊 Summary Statistics</h2>
+                <div class="stats-grid" id="statsGrid"></div>
+            </div>
+
+            <!-- Muscle Group Distribution -->
+            <div class="chart-section">
+                <h2 class="chart-title">🎯 Muscle Group Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="muscleChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Volume Over Time -->
+            <div class="chart-section">
+                <h2 class="chart-title">📈 Training Volume Over Time</h2>
+                <div class="chart-container">
+                    <canvas id="volumeChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Training Frequency -->
+            <div class="chart-section">
+                <h2 class="chart-title">📅 Training Frequency</h2>
+                <div class="chart-container">
+                    <canvas id="frequencyChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Top Exercises -->
+            <div class="chart-section">
+                <h2 class="chart-title">🏆 Top Exercises by Volume</h2>
+                <div class="chart-container">
+                    <canvas id="topExercisesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Exercise Progression -->
+            <div class="chart-section">
+                <h2 class="chart-title">💪 Exercise Progression (E1RM)</h2>
+                <div id="exerciseProgressionContainer"></div>
+            </div>
+
+            <!-- Muscle Group Balance -->
+            <div class="chart-section">
+                <h2 class="chart-title">⚖️ Muscle Group Balance</h2>
+                <div class="table-container" id="balanceTable"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================================
+        // MUSCLE GROUP CLASSIFICATION
+        // ============================================================================
+
+        const MUSCLE_GROUPS = {
+            "Chest": {
+                keywords: ["bench press", "chest press", "chest fly", "pec deck", "chest dip", "push up", "pushup", "crossover"],
+                equipment: ["pec", "chest"]
+            },
+            "Back": {
+                keywords: ["pulldown", "pull down", "row", "pull up", "pullup", "chin up", "chinup", "deadlift"],
+                equipment: ["lat", "back"]
+            },
+            "Shoulders": {
+                keywords: ["shoulder press", "overhead press", "military press", "front raise", "lateral raise", "side raise", "arnold press"],
+                equipment: ["shoulder", "delt"]
+            },
+            "Biceps": {
+                keywords: ["bicep curl", "biceps curl", "curl (dumbbell)", "curl (barbell)", "curl (cable)", "preacher curl", "hammer curl", "concentration curl"],
+                equipment: ["bicep", "biceps"]
+            },
+            "Triceps": {
+                keywords: ["tricep extension", "triceps extension", "skull crusher", "skullcrusher", "close grip bench", "tricep pushdown", "triceps pushdown"],
+                equipment: ["tricep", "triceps"]
+            },
+            "Legs": {
+                keywords: ["squat", "leg press", "leg extension", "leg curl", "lunge", "bulgarian split", "hack squat"],
+                equipment: ["leg", "quad", "hamstring", "glute"]
+            },
+            "Calves": {
+                keywords: ["calf raise", "calf press", "standing calf", "seated calf"],
+                equipment: ["calf"]
+            },
+            "Core": {
+                keywords: ["crunch", "sit up", "situp", "plank", "ab wheel", "leg raise", "hanging leg", "russian twist"],
+                equipment: ["ab", "core"]
+            }
+        };
+
+        function classifyExercise(exerciseName) {
+            const nameLower = exerciseName.toLowerCase().trim();
+
+            for (const [muscleGroup, data] of Object.entries(MUSCLE_GROUPS)) {
+                // Check keywords
+                for (const keyword of data.keywords) {
+                    if (nameLower.includes(keyword)) {
+                        return muscleGroup;
+                    }
+                }
+                // Check equipment
+                for (const equip of data.equipment) {
+                    if (nameLower.includes(equip)) {
+                        return muscleGroup;
+                    }
+                }
+            }
+
+            return "Other";
+        }
+
+        // ============================================================================
+        // DATA PROCESSING FUNCTIONS
+        // ============================================================================
+
+        function calculateE1RM(weight, reps) {
+            if (reps === 0 || weight === 0) return 0;
+            if (reps === 1) return weight;
+            return weight * (1 + reps / 30.0);
+        }
+
+        function processWorkoutData(data) {
+            // Add computed columns
+            data.forEach(row => {
+                row.Volume_Load = row.Weight * row.Reps;
+                row.E1RM = calculateE1RM(row.Weight, row.Reps);
+                row.Muscle_Group = classifyExercise(row['Exercise Name']);
+                row.Date = new Date(row.Date);
+                row.Week = getWeekStart(row.Date);
+            });
+
+            return data;
+        }
+
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day;
+            return new Date(d.setDate(diff));
+        }
+
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        // ============================================================================
+        // ANALYTICS FUNCTIONS
+        // ============================================================================
+
+        function calculateSummaryStats(data) {
+            const totalVolume = data.reduce((sum, row) => sum + row.Volume_Load, 0);
+            const totalSets = data.length;
+            const uniqueExercises = new Set(data.map(row => row['Exercise Name'])).size;
+            const uniqueDates = new Set(data.map(row => formatDate(row.Date))).size;
+            const dateRange = `${formatDate(new Date(Math.min(...data.map(r => r.Date))))} to ${formatDate(new Date(Math.max(...data.map(r => r.Date))))}`;
+
+            const avgVolPerWorkout = totalVolume / uniqueDates;
+            const avgSetsPerWorkout = totalSets / uniqueDates;
+
+            return {
+                totalVolume,
+                totalSets,
+                uniqueExercises,
+                trainingDays: uniqueDates,
+                dateRange,
+                avgVolPerWorkout,
+                avgSetsPerWorkout
+            };
+        }
+
+        function calculateMuscleGroupVolumes(data) {
+            const volumes = {};
+            data.forEach(row => {
+                const muscle = row.Muscle_Group;
+                volumes[muscle] = (volumes[muscle] || 0) + row.Volume_Load;
+            });
+            return volumes;
+        }
+
+        function calculateWeeklyVolume(data) {
+            const weekly = {};
+            data.forEach(row => {
+                const week = formatDate(row.Week);
+                weekly[week] = (weekly[week] || 0) + row.Volume_Load;
+            });
+
+            const sorted = Object.entries(weekly).sort((a, b) => new Date(a[0]) - new Date(b[0]));
+            return {
+                weeks: sorted.map(x => x[0]),
+                volumes: sorted.map(x => x[1])
+            };
+        }
+
+        function calculateDayOfWeekDistribution(data) {
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const distribution = new Array(7).fill(0);
+
+            const uniqueDates = new Set();
+            data.forEach(row => {
+                const dateStr = formatDate(row.Date);
+                if (!uniqueDates.has(dateStr)) {
+                    uniqueDates.add(dateStr);
+                    distribution[row.Date.getDay()]++;
+                }
+            });
+
+            return {
+                days: days,
+                counts: distribution
+            };
+        }
+
+        function getTopExercises(data, n = 10) {
+            const exerciseVolumes = {};
+            data.forEach(row => {
+                const ex = row['Exercise Name'];
+                exerciseVolumes[ex] = (exerciseVolumes[ex] || 0) + row.Volume_Load;
+            });
+
+            const sorted = Object.entries(exerciseVolumes)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, n);
+
+            return {
+                exercises: sorted.map(x => x[0]),
+                volumes: sorted.map(x => x[1])
+            };
+        }
+
+        function getExerciseProgression(data, exerciseName) {
+            const exerciseData = data.filter(row => row['Exercise Name'] === exerciseName)
+                .sort((a, b) => a.Date - b.Date);
+
+            if (exerciseData.length === 0) return null;
+
+            // Group by week and get max E1RM
+            const weeklyData = {};
+            exerciseData.forEach(row => {
+                const week = formatDate(row.Week);
+                if (!weeklyData[week] || weeklyData[week] < row.E1RM) {
+                    weeklyData[week] = row.E1RM;
+                }
+            });
+
+            const sorted = Object.entries(weeklyData).sort((a, b) => new Date(a[0]) - new Date(b[0]));
+
+            return {
+                weeks: sorted.map(x => x[0]),
+                e1rms: sorted.map(x => x[1])
+            };
+        }
+
+        // ============================================================================
+        // VISUALIZATION FUNCTIONS
+        // ============================================================================
+
+        let charts = {};
+
+        function destroyChart(chartId) {
+            if (charts[chartId]) {
+                charts[chartId].destroy();
+                delete charts[chartId];
+            }
+        }
+
+        function createMuscleGroupChart(data) {
+            destroyChart('muscleChart');
+            const volumes = calculateMuscleGroupVolumes(data);
+
+            const sortedEntries = Object.entries(volumes).sort((a, b) => b[1] - a[1]);
+
+            const ctx = document.getElementById('muscleChart').getContext('2d');
+            charts['muscleChart'] = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: sortedEntries.map(x => x[0]),
+                    datasets: [{
+                        data: sortedEntries.map(x => x[1]),
+                        backgroundColor: [
+                            '#667eea', '#764ba2', '#f093fb', '#4facfe',
+                            '#43e97b', '#fa709a', '#fee140', '#30cfd0'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value.toLocaleString()} lbs (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createVolumeChart(data) {
+            destroyChart('volumeChart');
+            const weekly = calculateWeeklyVolume(data);
+
+            const ctx = document.getElementById('volumeChart').getContext('2d');
+            charts['volumeChart'] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: weekly.weeks,
+                    datasets: [{
+                        label: 'Weekly Volume (lbs)',
+                        data: weekly.volumes,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: '#667eea'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Volume: ${context.parsed.y.toLocaleString()} lbs`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString() + ' lbs';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createFrequencyChart(data) {
+            destroyChart('frequencyChart');
+            const dayDist = calculateDayOfWeekDistribution(data);
+
+            const ctx = document.getElementById('frequencyChart').getContext('2d');
+            charts['frequencyChart'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dayDist.days,
+                    datasets: [{
+                        label: 'Training Sessions',
+                        data: dayDist.counts,
+                        backgroundColor: '#764ba2',
+                        borderColor: '#667eea',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createTopExercisesChart(data) {
+            destroyChart('topExercisesChart');
+            const top = getTopExercises(data, 10);
+
+            const ctx = document.getElementById('topExercisesChart').getContext('2d');
+            charts['topExercisesChart'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: top.exercises,
+                    datasets: [{
+                        label: 'Total Volume (lbs)',
+                        data: top.volumes,
+                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                        borderColor: '#667eea',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createExerciseProgressionCharts(data) {
+            const top = getTopExercises(data, 6);
+            const container = document.getElementById('exerciseProgressionContainer');
+            container.innerHTML = '<div class="exercise-grid" id="exerciseGrid"></div>';
+            const grid = document.getElementById('exerciseGrid');
+
+            top.exercises.forEach((exercise, idx) => {
+                const progression = getExerciseProgression(data, exercise);
+                if (!progression) return;
+
+                const chartDiv = document.createElement('div');
+                chartDiv.className = 'chart-section';
+                chartDiv.innerHTML = `
+                    <h3 style="color: #667eea; margin-bottom: 15px;">${exercise}</h3>
+                    <div style="height: 250px;">
+                        <canvas id="progression${idx}"></canvas>
+                    </div>
+                `;
+                grid.appendChild(chartDiv);
+
+                const chartId = `progression${idx}`;
+                destroyChart(chartId);
+
+                const ctx = document.getElementById(chartId).getContext('2d');
+                charts[chartId] = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: progression.weeks,
+                        datasets: [{
+                            label: 'E1RM (lbs)',
+                            data: progression.e1rms,
+                            borderColor: '#764ba2',
+                            backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        function createBalanceTable(data) {
+            const volumes = calculateMuscleGroupVolumes(data);
+            const sortedEntries = Object.entries(volumes).sort((a, b) => b[1] - a[1]);
+
+            let html = '<table>';
+            html += '<thead><tr><th>Muscle Group</th><th>Total Volume (lbs)</th><th>Percentage</th></tr></thead>';
+            html += '<tbody>';
+
+            const total = sortedEntries.reduce((sum, entry) => sum + entry[1], 0);
+
+            sortedEntries.forEach(([muscle, volume]) => {
+                const percentage = ((volume / total) * 100).toFixed(1);
+                html += `<tr>
+                    <td><strong>${muscle}</strong></td>
+                    <td>${volume.toLocaleString()}</td>
+                    <td>${percentage}%</td>
+                </tr>`;
+            });
+
+            html += '</tbody></table>';
+            document.getElementById('balanceTable').innerHTML = html;
+        }
+
+        // ============================================================================
+        // MAIN PROCESSING FUNCTION
+        // ============================================================================
+
+        function analyzeWorkoutData(data) {
+            // Show loading
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('error').classList.remove('active');
+
+            setTimeout(() => {
+                try {
+                    // Process data
+                    const processedData = processWorkoutData(data);
+
+                    // Calculate statistics
+                    const stats = calculateSummaryStats(processedData);
+
+                    // Display summary stats
+                    document.getElementById('statsGrid').innerHTML = `
+                        <div class="stat-card">
+                            <div class="stat-label">Total Volume</div>
+                            <div class="stat-value">${(stats.totalVolume / 1000).toFixed(1)}K</div>
+                            <div class="stat-label">lbs lifted</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Total Sets</div>
+                            <div class="stat-value">${stats.totalSets.toLocaleString()}</div>
+                            <div class="stat-label">sets completed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Unique Exercises</div>
+                            <div class="stat-value">${stats.uniqueExercises}</div>
+                            <div class="stat-label">different exercises</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Training Days</div>
+                            <div class="stat-value">${stats.trainingDays}</div>
+                            <div class="stat-label">workout sessions</div>
+                        </div>
+                    `;
+
+                    // Create visualizations
+                    createMuscleGroupChart(processedData);
+                    createVolumeChart(processedData);
+                    createFrequencyChart(processedData);
+                    createTopExercisesChart(processedData);
+                    createExerciseProgressionCharts(processedData);
+                    createBalanceTable(processedData);
+
+                    // Show results
+                    document.getElementById('loading').classList.remove('active');
+                    document.getElementById('results').classList.add('active');
+
+                    // Scroll to results
+                    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+
+                } catch (error) {
+                    document.getElementById('loading').classList.remove('active');
+                    document.getElementById('error').textContent = `Error processing data: ${error.message}`;
+                    document.getElementById('error').classList.add('active');
+                    console.error('Processing error:', error);
+                }
+            }, 500);
+        }
+
+        // ============================================================================
+        // FILE UPLOAD HANDLER
+        // ============================================================================
+
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            document.getElementById('fileName').textContent = `Selected: ${file.name}`;
+
+            Papa.parse(file, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    const data = results.data;
+
+                    // Validate required columns
+                    const requiredCols = ['Date', 'Exercise Name', 'Weight', 'Reps'];
+                    const columns = Object.keys(data[0] || {});
+                    const missing = requiredCols.filter(col => !columns.includes(col));
+
+                    if (missing.length > 0) {
+                        document.getElementById('error').textContent = 
+                            `Error: Missing required columns: ${missing.join(', ')}`;
+                        document.getElementById('error').classList.add('active');
+                        return;
+                    }
+
+                    // Filter out invalid rows
+                    const validData = data.filter(row => 
+                        row.Weight > 0 && row.Reps > 0 && row.Date && row['Exercise Name']
+                    );
+
+                    if (validData.length === 0) {
+                        document.getElementById('error').textContent = 
+                            'Error: No valid data found in CSV file';
+                        document.getElementById('error').classList.add('active');
+                        return;
+                    }
+
+                    analyzeWorkoutData(validData);
+                },
+                error: function(error) {
+                    document.getElementById('error').textContent = 
+                        `Error reading CSV file: ${error.message}`;
+                    document.getElementById('error').classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
