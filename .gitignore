@@ -13,6 +13,9 @@ webapp/node_modules/
 webapp/dist/
 dist-ssr
 *.local
+*.tsbuildinfo
+webapp/vite.config.js
+webapp/vite.config.d.ts
 
 # Editor directories and files
 .vscode/*
