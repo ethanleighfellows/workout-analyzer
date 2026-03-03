@@ -36,6 +36,14 @@ This repository is configured with a GitHub Actions workflow (`deploy.yml`) that
 
 ## Usage
 
-1. Open the application.
-2. Drag and drop your workout history CSV file (e.g., exported from the Strong app) into the upload zone.
-3. The dataset will be parsed, persisted in your browser, and the analytics dashboard will immediately populate.
+1. **Export your data from the Strong App:**
+   - Open the Strong app on your phone.
+   - Go to your **Profile** tab.
+   - Click the **gear icon** ⚙️ in the top left to open Settings.
+   - Scroll down to the **Data Management** section.
+   - Click **Export Workouts**.
+   - Ensure you toggle to include **Notes** and **Rest Timers** if needed.
+   - AirDrop the exported `.csv` file to your Mac (or transfer it to your computer via email/messages).
+2. Open Ethan's Workout Analytics in your browser.
+3. Drag and drop your exported `strong_workouts.csv` file into the upload zone.
+4. The dataset will be parsed, persisted in your browser, and the analytics dashboard will immediately populate.
