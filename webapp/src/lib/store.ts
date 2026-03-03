@@ -23,6 +23,11 @@ interface AppState {
     importData: (sets: WorkoutSet[]) => Promise<void>;
     clearData: () => Promise<void>;
     setDateFilter: (filter: DateFilter) => void;
+
+    // Athlete Profile
+    athleteWeight: number | null;
+    athleteGender: 'M' | 'F';
+    setAthleteProfile: (weight: number | null, gender: 'M' | 'F') => void;
 }
 
 const calculateSummary = (sets: WorkoutSet[]): WorkoutSummary | null => {
@@ -73,6 +78,10 @@ export const useStore = create<AppState>((set, get) => ({
     filteredWorkouts: [],
     filteredSummary: null,
     error: null,
+
+    // Profile
+    athleteWeight: localStorage.getItem('athleteWeight') ? Number(localStorage.getItem('athleteWeight')) : null,
+    athleteGender: (localStorage.getItem('athleteGender') as 'M' | 'F') || 'M',
 
     initialize: async () => {
         try {
@@ -127,5 +136,13 @@ export const useStore = create<AppState>((set, get) => ({
             filteredWorkouts: filtered,
             filteredSummary: calculateSummary(filtered)
         });
+    },
+
+    setAthleteProfile: (weight, gender) => {
+        if (weight) localStorage.setItem('athleteWeight', weight.toString());
+        else localStorage.removeItem('athleteWeight');
+
+        localStorage.setItem('athleteGender', gender);
+        set({ athleteWeight: weight, athleteGender: gender });
     }
 }));
