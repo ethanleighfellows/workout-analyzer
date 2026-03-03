@@ -6,6 +6,7 @@ import { Biomechanics } from './components/Biomechanics';
 import { Predictions } from './components/Predictions';
 import { Periodization } from './components/Periodization';
 import { Insights } from './components/Insights';
+import { HistoryLog } from './components/HistoryLog';
 import { Activity, Compass, Flame, History, Settings, LogOut, BarChart2, TrendingUp } from 'lucide-react';
 
 function App() {
@@ -115,7 +116,7 @@ function App() {
                                 {activeTab === 'periodization' && <Periodization />}
                                 {activeTab === 'insights' && <Insights />}
                                 {activeTab === 'predictions' && <Predictions />}
-                                {activeTab === 'history' && <div style={{ color: 'var(--text-secondary)' }}>History log coming soon...</div>}
+                                {activeTab === 'history' && <HistoryLog />}
                             </>
                         )}
                     </div>
