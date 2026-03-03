@@ -7,10 +7,11 @@ import { Predictions } from './components/Predictions';
 import { Periodization } from './components/Periodization';
 import { Insights } from './components/Insights';
 import { HistoryLog } from './components/HistoryLog';
-import { Activity, Compass, Flame, History, Settings, LogOut, BarChart2, TrendingUp } from 'lucide-react';
+import { Settings } from './components/Settings';
+import { Activity, Compass, Flame, History, Settings as SettingsIcon, BarChart2, TrendingUp } from 'lucide-react';
 
 function App() {
-    const { initialize, isLoaded, workouts, clearData } = useStore();
+    const { initialize, isLoaded, workouts } = useStore();
     const [activeTab, setActiveTab] = useState('dashboard');
 
     useEffect(() => {
@@ -24,6 +25,7 @@ function App() {
         { id: 'insights', label: 'Insights & Archetypes', icon: <TrendingUp size={20} /> },
         { id: 'predictions', label: 'Predictions (1RM)', icon: <Flame size={20} /> },
         { id: 'history', label: 'History log', icon: <History size={20} /> },
+        { id: 'settings', label: 'Settings & Data', icon: <SettingsIcon size={20} /> },
     ];
 
     return (
@@ -77,14 +79,9 @@ function App() {
 
                 {/* Bottom Actions */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <button style={{ background: 'transparent', color: 'var(--text-secondary)', border: 'none', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', borderRadius: '12px', transition: 'all 0.2s', textAlign: 'left' }} className="hover-highlight">
-                        <Settings size={20} /> Settings
-                    </button>
-                    {isLoaded && workouts.length > 0 && (
-                        <button onClick={clearData} style={{ background: 'transparent', color: '#ef4444', border: 'none', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', borderRadius: '12px', transition: 'all 0.2s', textAlign: 'left' }} className="hover-highlight">
-                            <LogOut size={20} /> Clear Data
-                        </button>
-                    )}
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', padding: '0 12px', textAlign: 'center' }}>
+                        Local-First Architecture
+                    </div>
                 </div>
             </nav>
 
@@ -117,6 +114,7 @@ function App() {
                                 {activeTab === 'insights' && <Insights />}
                                 {activeTab === 'predictions' && <Predictions />}
                                 {activeTab === 'history' && <HistoryLog />}
+                                {activeTab === 'settings' && <Settings />}
                             </>
                         )}
                     </div>
